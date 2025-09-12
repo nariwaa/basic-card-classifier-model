@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  pytorch-rocm-env:
+    image: rocm/pytorch:rocm6.4.3_ubuntu24.04_py3.12_pytorch_release_2.6.0
+    volumes:
+      - ./app/:/app/
+    devices:
+      - /dev/kfd:/dev/kfd # for rocm GPU access
+      - /dev/dri:/dev/dri # for rocm GPU access
+    network_mode: host # often helpful for ROCm
+    working_dir: /app # sets /app as the default directory when you enter
+    # command: sleep infinity # uncomment this if you want the container to run indefinitely in the background
+    # You can also just keep it running for a session
+    tty: true # keeps the container interactive for attaching
+    stdin_open: true # allows you to input commands
