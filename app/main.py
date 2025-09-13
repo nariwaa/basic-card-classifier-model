@@ -22,7 +22,13 @@ class PlayingCardDataset(Dataset):
     def classes(self):
         return self.data.classes
 
-dataset = PlayingCardDataset(data_dir='/app/dataset/train')
+data_dir='/app/dataset/train'
+dataset = PlayingCardDataset(data_dir=data_dir)
+target_to_class = {v: k for k, v in ImageFolder(data_dir).class_to_idx.items()}
+transform = transforms.Compose([
+    transforms.Resize((128,128)),
+    transforms.ToTensor()
+    ])
 
-print(len(dataset))
-print(dataset())
+print(target_to_class)
+print(dataset(100))
