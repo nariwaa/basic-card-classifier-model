@@ -13,4 +13,4 @@ services:
     # You can also just keep it running for a session
     tty: true # keeps the container interactive for attaching
     stdin_open: true # allows you to input commands
-    command: bash -c "pip install -r /app/requirements.txt && bash"
+    command: bash -c "pip install -r /app/requirements.txt ; tensorboard --logdir=./runs --bind_all"

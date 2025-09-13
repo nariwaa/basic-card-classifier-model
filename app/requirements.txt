@@ -1,6 +1,10 @@
 python-chess
+timm
 pygame
 numpy
+pandas
+matplotlib
+hiredis
 jupyter
 tensorboard
 
