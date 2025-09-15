@@ -10,9 +10,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+if torch.cuda.is_available():
+    device = torch.device("cuda:0")
+    print(f"gpu device name: {torch.cuda.get_device_name(0)}\n")
+else:
+    device = torch.device("cpu")
+    print(f"no GPU detected, we'll fallback to CPU 😭\n")
+
 class PlayingCardDataset(Dataset):
     def __init__(self, data_dir, transform=None):
-        self.data = ImageFolder(data_dir, transform)
+        self.data = ImageFolder(data_dir, transform=transform)
 
     def __len__(self):
         return len(self.data)
@@ -23,12 +30,15 @@ class PlayingCardDataset(Dataset):
         return self.data.classes
 
 data_dir='/app/dataset/train'
-dataset = PlayingCardDataset(data_dir=data_dir)
-target_to_class = {v: k for k, v in ImageFolder(data_dir).class_to_idx.items()}
 transform = transforms.Compose([
     transforms.Resize((128,128)),
     transforms.ToTensor()
     ])
 
-print(target_to_class)
-print(dataset(100))
+dataset = PlayingCardDataset(data_dir=data_dir, transform=transform)
+
+target_to_class = {v: k for k, v in ImageFolder(data_dir).class_to_idx.items()}
+
+
+image, label = dataset[100]
+print(image)
