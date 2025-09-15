@@ -41,4 +41,33 @@ target_to_class = {v: k for k, v in ImageFolder(data_dir).class_to_idx.items()}
 
 
 image, label = dataset[100]
-print(image)
+
+print(image.shape)
+
+dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+
+for image, labels in dataloader:
+    break
+print(image.shape)
+print(labels)
+
+# okay so we're using EfficientNet-B7
+class SimpleCardClassifer(nn.Module):
+    def __init__(self, num_classes=53):
+        super(SimpleCardClassifer, self).__init__()
+        self.base_model = timm.create_model('efficientnet_b0' pretrained=True)
+        self.features = nn.Sequential(*list(self.base_model.children())[:-1]) # I don't get this
+        # at all but bro said it's ok don't pay attention to it, pretty much it
+        # is supposed to remove the last layer (so output layer) from the network so we can
+        # have 53 output nodes because the default is 1280 and that's wayyy too large 
+        # for our network that is supposed to find cards
+
+        enet_out_size = 1280
+        # Classifier
+        self.classifier = nn.Linear(enet_out_size, num_classes)
+
+    def forward(self, x):
+        x = self.features(x)
+        output = self.classifier(x)
+        return output
+
