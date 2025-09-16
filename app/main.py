@@ -55,7 +55,7 @@ print(labels)
 class SimpleCardClassifer(nn.Module):
     def __init__(self, num_classes=53):
         super(SimpleCardClassifer, self).__init__()
-        self.base_model = timm.create_model('efficientnet_b0' pretrained=True)
+        self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
         self.features = nn.Sequential(*list(self.base_model.children())[:-1]) # I don't get this
         # at all but bro said it's ok don't pay attention to it, pretty much it
         # is supposed to remove the last layer (so output layer) from the network so we can
@@ -71,3 +71,50 @@ class SimpleCardClassifer(nn.Module):
         output = self.classifier(x)
         return output
 
+model = SimpleCardClassifer(num_classes=53)
+truc = model(image)
+print(truc.shape)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+train_dir = "./dataset/train/"
+valid_dir = "./dataset/valid/"
+test_dir = "./dataset/test/"
+
+train_dataset = PlayingCardDataset(data_dir=train_dir, transform=transform)
+valid_dataset = PlayingCardDataset(data_dir=valid_dir, transform=transform)
+test_dataset = PlayingCardDataset(data_dir=test_dir, transform=transform)
+
+train_loader = dataloader(train_dataset, batch_size=32, shuffle=True)
+valid_loader = dataloader(valid_dataset, batch_size=32, shuffle=False)
+test_loader = dataloader(test_dataset, batch_size=32, shuffle=False)
+
+num_epoch = 5
+train_loss, val_losses = [], []
+model = SimpleCardClassifer(num_classes=53)
+
+for epoch in range(sum_epoch):
+    model.train()
+    running_loss = 0.0
+    for images, labels in train_loader:
+        optimizer.zero_grad()
+        outputs = models(images)
+        loss=criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.tiem() * images.size(0)
+    train_loss = running_loss / len(train_loader.dataset)
+    train_losses.append(train_loss)
+    model.eval()
+
+    # validation
+    model.eval
+    running_loss = 0.0
+    with toch.no_grad():
+        for image, labels in val_loader:
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            running_loss += loss.item() * inputs.size(0)
+    val_loss = running_loss / len(val_loader.dataset)
+    val_losses.append(val_loss)
