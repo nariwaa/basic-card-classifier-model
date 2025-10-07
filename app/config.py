@@ -3,7 +3,7 @@ import torch
 # -- training hyperparameters --
 LEARNING_RATE = 0.001
 BATCH_SIZE = 32
-NUM_EPOCHS = 7
+NUM_EPOCHS = 5
 
 # -- dataset paths --
 TRAIN_DIR = "./dataset/train/"

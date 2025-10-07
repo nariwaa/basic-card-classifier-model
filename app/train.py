@@ -10,6 +10,12 @@ import config
 from model import SimpleCardClassifer
 from dataset import get_loaders
 
+from datetime import datetime
+from torch.utils.tensorboard import SummaryWriter
+
+timestamp = datetime.now().strftime("%b%d_%H-%M-%S")
+writer = SummaryWriter(log_dir=f"runs/stable_ac_{timestamp}")
+
 def print_system_info():
     """Print system and library versions"""
     print('System Version:', sys.version)
@@ -59,6 +65,8 @@ def train_model():
             running_loss += loss.item() * labels.size(0)
         
         train_loss = running_loss / len(train_loader.dataset)
+        writer.add_scalar('train_loss', train_loss, epoch)
+
         train_losses.append(train_loss)
         
         # Validation phase
@@ -88,6 +96,9 @@ def train_model():
     print(f"\nTraining complete! Best validation loss: {best_val_loss:.4f}")
     print(f"Model saved to: {config.MODEL_PATH}")
     print(f"Class mapping saved to: {config.CLASS_MAPPING_PATH}")
+
+
+writer.close()
 
 if __name__ == '__main__':
     train_model()

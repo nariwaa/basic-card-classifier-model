@@ -1,1 +1,4 @@
-./.pythonlib/
+.pythonlib/
+.pythonlib/**
+app/__pycache__/
+app/__pycache__/**
