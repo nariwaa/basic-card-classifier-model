@@ -1,4 +1,5 @@
 # # init
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,15 +8,19 @@ import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 import timm
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # For data viz
 import pandas as pd
 import numpy as np
+import sys
+from tqdm.notebook import tqdm
 
 print('System Version:', sys.version)
 print('PyTorch version', torch.__version__)
-print('Torchvision version', torchvision.__version__)
+# print('Torchvision version', torchvision.__version__)
 print('Numpy version', np.__version__)
 print('Pandas version', pd.__version__)
+
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 if torch.cuda.is_available():
     device = torch.device("cuda:0")
@@ -42,14 +47,14 @@ class PlayingCardDataset(Dataset):
 
 data_dir='/app/dataset/train'
 
-print(len(dataset))
-
 transform = transforms.Compose([
     transforms.Resize((128,128)),
     transforms.ToTensor()
     ])
 
 dataset = PlayingCardDataset(data_dir=data_dir, transform=transform)
+
+print(len(dataset))
 
 target_to_class = {v: k for k, v in ImageFolder(data_dir).class_to_idx.items()}
 
@@ -62,7 +67,7 @@ print(image.shape)
 for image, label in dataset:
     break
 
-# # dataloader
+# ## dataloader
 
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
@@ -101,50 +106,67 @@ class SimpleCardClassifer(nn.Module):
 
 model = SimpleCardClassifer(num_classes=53)
 print(str(model)[:500])
-print(truc.shape)
 
-example_out = model(images)
+example_out = model(image)
 example_out.shape
 
 # # Training loop
+
+transform = transforms.Compose([
+    transforms.Resize((128, 128)),
+    transforms.ToTensor(),
+])
 
 train_dir = "./dataset/train/"
 valid_dir = "./dataset/valid/"
 test_dir = "./dataset/test/"
 
-train_dataset = PlayingCardDataset(data_dir=train_dir, transform=transform)
-valid_dataset = PlayingCardDataset(data_dir=valid_dir, transform=transform)
-test_dataset = PlayingCardDataset(data_dir=test_dir, transform=transform)
+train_dataset = PlayingCardDataset(train_dir, transform=transform)
+val_dataset = PlayingCardDataset(valid_dir, transform=transform)
+test_dataset = PlayingCardDataset(test_dir, transform=transform)
 
-train_loader = dataloader(train_dataset, batch_size=32, shuffle=True)
-valid_loader = dataloader(valid_dataset, batch_size=32, shuffle=False)
-test_loader = dataloader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
-num_epoch = 5
-train_loss, val_losses = [], []
+# Simple training loop
+num_epochs = 5
+train_losses, val_losses = [], []
+
+
 model = SimpleCardClassifer(num_classes=53)
+model.to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-for epoch in range(sum_epoch):
+for epoch in range(num_epochs):
+    # Training phase
     model.train()
     running_loss = 0.0
-    for images, labels in train_loader:
+    for images, labels in tqdm(train_loader, desc='Training loop'):
+        # Move inputs and labels to the device
+        images, labels = images.to(device), labels.to(device)
+        
         optimizer.zero_grad()
-        outputs = models(images)
-        loss=criterion(outputs, labels)
+        outputs = model(images)
+        loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        running_loss += loss.tiem() * images.size(0)
+        running_loss += loss.item() * labels.size(0)
     train_loss = running_loss / len(train_loader.dataset)
     train_losses.append(train_loss)
+    
+    # Validation phase
     model.eval()
-
-    # validation
-    model.eval
     running_loss = 0.0
-    with toch.no_grad():
-        for image, labels in val_loader:
+    with torch.no_grad():
+        for images, labels in tqdm(val_loader, desc='Validation loop'):
+            # Move inputs and labels to the device
+            images, labels = images.to(device), labels.to(device)
+         
             outputs = model(images)
             loss = criterion(outputs, labels)
-            running_loss += loss.item() * inputs.size(0)
+            running_loss += loss.item() * labels.size(0)
     val_loss = running_loss / len(val_loader.dataset)
     val_losses.append(val_loss)
+    print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_loss}, Validation loss: {val_loss}")
