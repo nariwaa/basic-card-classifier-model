@@ -1,4 +1,3 @@
-# # init
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,12 +10,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-print('System Version:', sys.version)
-print('PyTorch version', torch.__version__)
-print('Torchvision version', torchvision.__version__)
-print('Numpy version', np.__version__)
-print('Pandas version', pd.__version__)
-
 if torch.cuda.is_available():
     device = torch.device("cuda:0")
     print(f"gpu device name: {torch.cuda.get_device_name(0)}\n")
@@ -24,26 +17,19 @@ else:
     device = torch.device("cpu")
     print(f"no GPU detected, we'll fallback to CPU 😭\n")
 
-# # Pytorch dataset
-
 class PlayingCardDataset(Dataset):
     def __init__(self, data_dir, transform=None):
         self.data = ImageFolder(data_dir, transform=transform)
-    
+
     def __len__(self):
         return len(self.data)
-    
-    def __getitem__(self, idx):
+    def __getitem__(self,idx):
         return self.data[idx]
-    
     @property
     def classes(self):
         return self.data.classes
 
 data_dir='/app/dataset/train'
-
-print(len(dataset))
-
 transform = transforms.Compose([
     transforms.Resize((128,128)),
     transforms.ToTensor()
@@ -58,55 +44,39 @@ image, label = dataset[100]
 
 print(image.shape)
 
-# iterate over dataset
-for image, label in dataset:
-    break
-
-# # dataloader
-
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 for image, labels in dataloader:
     break
 print(image.shape)
 print(labels)
-print(labels.shape)
-
-# # Pytorch Model
 
 # okay so we're using EfficientNet-B7
 class SimpleCardClassifer(nn.Module):
     def __init__(self, num_classes=53):
         super(SimpleCardClassifer, self).__init__()
-        # Where we define all the parts of the model
         self.base_model = timm.create_model('efficientnet_b0', pretrained=True)
-        self.features = nn.Sequential(*list(self.base_model.children())[:-1])
+        self.features = nn.Sequential(*list(self.base_model.children())[:-1]) # I don't get this
         # at all but bro said it's ok don't pay attention to it, pretty much it
         # is supposed to remove the last layer (so output layer) from the network so we can
         # have 53 output nodes because the default is 1280 and that's wayyy too large 
         # for our network that is supposed to find cards
 
         enet_out_size = 1280
-        # Make a classifier
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(enet_out_size, num_classes)
-        )
-    
+        # Classifier
+        self.classifier = nn.Linear(enet_out_size, num_classes)
+
     def forward(self, x):
-        # Connect these parts and return the output
         x = self.features(x)
         output = self.classifier(x)
         return output
 
 model = SimpleCardClassifer(num_classes=53)
-print(str(model)[:500])
+truc = model(image)
 print(truc.shape)
 
-example_out = model(images)
-example_out.shape
-
-# # Training loop
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 train_dir = "./dataset/train/"
 valid_dir = "./dataset/valid/"
