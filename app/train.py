@@ -83,6 +83,8 @@ def train_model():
         
         val_loss = running_loss / len(val_loader.dataset)
         val_losses.append(val_loss)
+
+        writer.add_scalar('val_loss', val_loss, epoch)
         
         print(f"Epoch {epoch+1}/{config.NUM_EPOCHS} - Train loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}")
         
